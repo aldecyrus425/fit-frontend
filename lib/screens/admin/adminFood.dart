@@ -19,9 +19,9 @@ class AdminFoodScreen extends StatefulWidget {
 class _AdminFoodScreenState extends State<AdminFoodScreen> {
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
-    fetchFoods();
+    await fetchFoods();
   }
 
   Future<void> fetchFoods() async {
@@ -313,7 +313,7 @@ class _AdminFoodScreenState extends State<AdminFoodScreen> {
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                onPressed: () {
+                onPressed: () async {
 
                   if (_formKey.currentState!.validate() && selectedImage != null) {
                     addFood(
@@ -328,6 +328,9 @@ class _AdminFoodScreenState extends State<AdminFoodScreen> {
                         level: selectedLevel,
                         imageFile: selectedImage!
                     );
+
+                    await fetchFoods();
+
                     Navigator.pop(context);
                   }
                   else if (selectedImage == null) {

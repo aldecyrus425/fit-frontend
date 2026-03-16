@@ -1,4 +1,5 @@
 import 'package:fit_final/screens/dashboard.dart';
+import 'package:fit_final/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/app_state.dart';
@@ -57,15 +58,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profile'),
-              onTap: () => Navigator.pushNamed(context, '/profile'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () => Navigator.pushNamed(context, '/settings'),
-            ),
+              leading: const Icon(Icons.logout_outlined),
+              title: const Text('Logout'),
+              onTap: () => {
+                _logout(context)
+              },
+            )
           ],
         ),
       ),
@@ -82,6 +80,17 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Community'),
         ],
       ),
+
+
+    );
+  }
+
+  void _logout(BuildContext context) {
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+          (Route<dynamic> route) => false,
     );
   }
 }

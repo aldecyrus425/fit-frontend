@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:fit_final/main.dart';
 import 'package:fit_final/models/serverAddress.dart';
 import 'package:fit_final/screens/challengeDetails.dart';
 import 'package:fit_final/screens/exerciseDetails.dart';
@@ -10,6 +11,8 @@ import '../models/app_state.dart';
 import '../models/exercise.dart';
 import '../models/food.dart';
 import 'package:http/http.dart' as http;
+import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -17,6 +20,51 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
+    Future<void> scheduleChallengeNotifications(List<dynamic> challenges) async {
+      final now = DateTime.now();
+
+      for (var challenge in challenges) {
+        final timeNotify = challenge['time_notify'];
+        if (timeNotify == null || timeNotify.isEmpty) continue;
+
+        // Parse HH:mm
+        final parts = timeNotify.split(":");
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+
+        // Schedule notification for today or tomorrow if time already passed
+        DateTime scheduledDate = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          hour,
+          minute,
+        );
+
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
+
+        await flutterLocalNotificationsPlugin.zonedSchedule(
+          challenge['challenge_id'].hashCode, // unique notification id
+          "Exercise Reminder",
+          "It's time for your challenge: ${challenge['title']}",
+          tz.TZDateTime.from(scheduledDate, tz.local),
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'exercise_channel',
+              'Exercise Notifications',
+              channelDescription: 'Reminders for scheduled exercises',
+              importance: Importance.max,
+              priority: Priority.high,
+            ),
+          ),
+          androidAllowWhileIdle: true,
+          uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+    }
 
     Future<List<dynamic>> fetchUserChallenges(String userId) async {
       final url = Uri.parse(
@@ -26,13 +74,16 @@ class DashboardScreen extends StatelessWidget {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final challenges = jsonDecode(response.body);
+
+        // Schedule notifications for each challenge
+        await scheduleChallengeNotifications(challenges);
+
+        return challenges;
       } else {
         throw Exception("Failed to load challenges");
       }
     }
-
-
 
     // Access AppState
     final state = Provider.of<AppState>(context);
@@ -63,8 +114,6 @@ class DashboardScreen extends StatelessWidget {
         throw Exception("Failed to load foods");
       }
     }
-
-
 
     return SafeArea(
       child: SingleChildScrollView(

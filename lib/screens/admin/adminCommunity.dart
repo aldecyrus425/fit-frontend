@@ -20,6 +20,8 @@ class AdminCommunityScreen extends StatefulWidget {
 
 class _AdminCommunityScreenState extends State<AdminCommunityScreen> {
 
+  TimeOfDay? selectedTime;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +61,7 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen> {
     required String category,
     required String level,
     required int durationDays,
+    String? notifyTime, // new optional parameter in HH:mm format
   }) async {
     try {
       final url = Uri.parse(Config.endpoint("addCommunityChallenge.php"));
@@ -71,6 +74,7 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen> {
           "category": category,
           "level": level,
           "durationDays": durationDays,
+          "notifyTime": notifyTime,
         }),
       );
 
@@ -84,6 +88,7 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen> {
           category: category,
           level: level,
           durationDays: durationDays,
+          notifyTime: notifyTime, // store locally as well
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -182,6 +187,32 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen> {
                     ),
                     const SizedBox(height: 8),
 
+                    TextFormField(
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: "Notification Time",
+                        suffixIcon: const Icon(Icons.access_time),
+                      ),
+                      controller: TextEditingController(
+                        text: selectedTime != null
+                            ? selectedTime!.format(context)
+                            : "",
+                      ),
+                      onTap: () async {
+                        final TimeOfDay? picked = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.now(),
+                        );
+                        if (picked != null) {
+                          setStateDialog(() => selectedTime = picked);
+                        }
+                      },
+                      validator: (value) =>
+                      selectedTime == null ? "Pick a time for notification" : null,
+                    ),
+
+                    const SizedBox(height: 8),
+
                     // Category Dropdown
                     DropdownButtonFormField<String>(
                       value: category,
@@ -221,6 +252,9 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen> {
                       category: category,
                       level: level,
                       durationDays: durationDays,
+                      notifyTime: selectedTime != null
+                          ? "${selectedTime!.hour.toString().padLeft(2,'0')}:${selectedTime!.minute.toString().padLeft(2,'0')}"
+                          : null,
                     );
 
                     if (success != null) {
