@@ -29,38 +29,44 @@ class _CommunityScreenState extends State<CommunityScreen> {
     try {
       final appState = Provider.of<AppState>(context, listen: false);
 
-      final url = Uri.parse(
-        Config.endpoint("getCommunity.php"),
-      );
-
+      // 1️⃣ Get all community challenges
+      final url = Uri.parse(Config.endpoint("getCommunity.php"));
       final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
-
-        // Filter based on user's category & level
-        final filtered = data.where((e) =>
-        e['category'] == appState.userFitnessService &&
-            e['level'] == appState.userLevel
-        ).map((e) => CommunityChallenge(
-          id: e['id'],
-          title: e['title'],
-          description: e['description'],
-          category: e['category'],
-          level: e['level'],
-          durationDays: e['durationDays'],
-        )).toList();
-
-        setState(() {
-          challenges = filtered;
-          isLoading = false;
-        });
-      } else {
+      if (response.statusCode != 200) {
         setState(() {
           error = "Failed to fetch challenges (status ${response.statusCode})";
           isLoading = false;
         });
+        return;
       }
+
+      final List data = jsonDecode(response.body);
+
+      // 2️⃣ Get user's accepted/rejected/completed challenges
+      final userChallengesUrl =
+      Uri.parse(Config.endpoint("getUserChallenges.php?user_id=${appState.currentUser!.id}"));
+      final userResponse = await http.get(userChallengesUrl);
+
+      List<String> excludedIds = [];
+      if (userResponse.statusCode == 200) {
+        final List userData = jsonDecode(userResponse.body);
+        excludedIds = userData.map<String>((e) => e['challenge_id'].toString()).toList();
+      }
+
+      // 3️⃣ Filter based on category, level, and exclusion
+      final filtered = data
+          .where((e) =>
+      e['category'] == appState.userFitnessService &&
+          e['level'] == appState.userLevel &&
+          !excludedIds.contains(e['id'].toString()))
+          .map((e) => CommunityChallenge.fromJson(e))
+          .toList();
+
+      setState(() {
+        challenges = filtered;
+        isLoading = false;
+      });
     } catch (e) {
       setState(() {
         error = "Error fetching challenges: $e";
@@ -125,31 +131,73 @@ class _ChallengeCardState extends State<ChallengeCard> {
     progress = 0.0; // or pass from widget.challenge if saved in db
   }
 
-  void acceptChallenge() {
+  void acceptChallenge() async {
     setState(() {
       isAccepted = true;
       isRejected = false;
+      progress = 0.0;
     });
+
+    await updateChallengeBackend(status: "accepted", progress: 0.0);
   }
 
-  void rejectChallenge() {
+  void rejectChallenge() async {
     setState(() {
       isRejected = true;
     });
+
+    await updateChallengeBackend(status: "rejected", progress: progress);
   }
 
-  void doneToday() {
+  void doneToday() async {
     setState(() {
       progress += 1 / widget.challenge.durationDays;
       if (progress > 1) progress = 1;
     });
+
+    String newStatus = progress >= 1.0 ? "completed" : "accepted";
+
+    await updateChallengeBackend(status: newStatus, progress: progress);
   }
 
-  void cancelChallenge() {
+  void cancelChallenge() async {
     setState(() {
       isAccepted = false;
       progress = 0.0;
     });
+
+    await updateChallengeBackend(status: "cancelled", progress: 0.0);
+  }
+
+// Call backend
+  Future<void> updateChallengeBackend({
+    required String status,
+    required double progress,
+  }) async {
+    final appState = Provider.of<AppState>(context, listen: false);
+
+    final url = Uri.parse(Config.endpoint("addUserChallenge.php"));
+    final payload = {
+      "user_id": appState.currentUser!.id,
+      "challenge_id": widget.challenge.id,
+      "status": status,
+      "progress": progress,
+    };
+
+    try {
+      final response = await http.post(url,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(payload));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print("Challenge updated: $data");
+      } else {
+        print("Failed to update challenge. Status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error updating challenge: $e");
+    }
   }
 
   @override

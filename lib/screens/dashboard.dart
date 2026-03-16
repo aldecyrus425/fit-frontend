@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fit_final/models/serverAddress.dart';
+import 'package:fit_final/screens/challengeDetails.dart';
 import 'package:fit_final/screens/exerciseDetails.dart';
 import 'package:fit_final/screens/foodDetails.dart';
 import 'package:flutter/material.dart';
@@ -63,32 +64,7 @@ class DashboardScreen extends StatelessWidget {
       }
     }
 
-    final foods = state.foods.isNotEmpty
-        ? state.foods
-        : [
-      Food(
-        id: '1',
-        name: 'Grilled Chicken Salad',
-        description: 'High protein salad with fresh veggies',
-        imageUrl: 'https://example.com/chicken_salad.jpg',
-        calories: 350,
-        protein: 30,
-        carbs: 20,
-        fat: 10,
-        mealType: 'Lunch',
-      ),
-      Food(
-        id: '2',
-        name: 'Oatmeal with Fruits',
-        description: 'Healthy breakfast with fiber and vitamins',
-        imageUrl: 'https://example.com/oatmeal.jpg',
-        calories: 250,
-        protein: 8,
-        carbs: 45,
-        fat: 5,
-        mealType: 'Breakfast',
-      ),
-    ];
+
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -135,8 +111,22 @@ class DashboardScreen extends StatelessWidget {
                         ),
                         trailing: ElevatedButton(
                           child: const Text("Start"),
+
                           onPressed: () {
-                            // open challenge details
+                            final challengeId = ch['challenge_id']?.toString(); // <- use 'challenge_id'
+                            if (challengeId == null || challengeId.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Invalid challenge data")),
+                              );
+                              return;
+                            }
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ChallengeDetailScreen(challengeId: challengeId),
+                              ),
+                            );
                           },
                         ),
                       ),
