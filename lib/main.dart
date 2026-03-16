@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:fit_final/models/Init_Timezone.dart';
 import 'package:fit_final/models/app_state.dart';
+import 'package:fit_final/models/notification_service.dart';
 import 'package:fit_final/screens/admin/adminDashboard.dart';
 import 'package:fit_final/screens/login.dart';
 import 'package:fit_final/screens/mainLayout.dart';
@@ -6,20 +10,23 @@ import 'package:fit_final/screens/register.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().initialize();
+  await initializeTimeZones();
 
-  tz.initializeTimeZones();
-
-  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const initSettings = InitializationSettings(android: androidSettings);
-
-  await flutterLocalNotificationsPlugin.initialize(initSettings);
+  // Request permission for Android 13+
+  if (Platform.isAndroid) {
+    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    final granted = await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+    print("Notification permission granted? $granted");
+  }
 
   runApp(
     ChangeNotifierProvider(

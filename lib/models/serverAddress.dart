@@ -1,6 +1,6 @@
 class Config {
   // Default server address
-  static String serverAddress = "http://192.168.1.41/fitbackend";
+  static String serverAddress = "http://192.168.1.22/fitbuddy";
 
   static void setServerAddress(String address) {
     serverAddress = address;

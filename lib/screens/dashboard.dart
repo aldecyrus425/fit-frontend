@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fit_final/main.dart';
+import 'package:fit_final/models/notification_service.dart';
 import 'package:fit_final/models/serverAddress.dart';
 import 'package:fit_final/screens/challengeDetails.dart';
 import 'package:fit_final/screens/exerciseDetails.dart';
@@ -11,7 +12,6 @@ import '../models/app_state.dart';
 import '../models/exercise.dart';
 import '../models/food.dart';
 import 'package:http/http.dart' as http;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -21,47 +21,22 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
 
     Future<void> scheduleChallengeNotifications(List<dynamic> challenges) async {
-      final now = DateTime.now();
+      for (var ch in challenges) {
+        final String? timeString = ch['notification_time']; // backend UTC time
+        if (timeString == null) continue;
 
-      for (var challenge in challenges) {
-        final timeNotify = challenge['time_notify'];
-        if (timeNotify == null || timeNotify.isEmpty) continue;
+        // Parse backend time (assume ISO string in UTC)
+        DateTime backendTime = DateTime.parse(timeString).toUtc();
 
-        // Parse HH:mm
-        final parts = timeNotify.split(":");
-        final hour = int.parse(parts[0]);
-        final minute = int.parse(parts[1]);
+        // Convert to local device time
+        DateTime localTime = backendTime.toLocal();
 
-        // Schedule notification for today or tomorrow if time already passed
-        DateTime scheduledDate = DateTime(
-          now.year,
-          now.month,
-          now.day,
-          hour,
-          minute,
-        );
-
-        if (scheduledDate.isBefore(now)) {
-          scheduledDate = scheduledDate.add(const Duration(days: 1));
-        }
-
-        await flutterLocalNotificationsPlugin.zonedSchedule(
-          challenge['challenge_id'].hashCode, // unique notification id
-          "Exercise Reminder",
-          "It's time for your challenge: ${challenge['title']}",
-          tz.TZDateTime.from(scheduledDate, tz.local),
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'exercise_channel',
-              'Exercise Notifications',
-              channelDescription: 'Reminders for scheduled exercises',
-              importance: Importance.max,
-              priority: Priority.high,
-            ),
-          ),
-          androidAllowWhileIdle: true,
-          uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+        // Schedule notification
+        await NotificationService().scheduleNotification(
+          id: ch['challenge_id'], // use unique ID per challenge
+          title: "Challenge Reminder",
+          body: ch['title'],
+          scheduledDate: localTime,
         );
       }
     }
@@ -76,7 +51,6 @@ class DashboardScreen extends StatelessWidget {
       if (response.statusCode == 200) {
         final challenges = jsonDecode(response.body);
 
-        // Schedule notifications for each challenge
         await scheduleChallengeNotifications(challenges);
 
         return challenges;
