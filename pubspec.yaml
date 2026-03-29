@@ -40,7 +40,9 @@ dependencies:
   uuid: ^4.5.3
   image_picker: ^1.2.1
   http: ^1.6.0
-  flutter_local_notifications: ^20.1.0
+  flutter_local_notifications: ^21.0.0
+  android_intent_plus: ^5.0.2
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +57,11 @@ dev_dependencies:
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
+
+
+flutter_icons:
+  android: true
+  image_path: "assets/logo.png"
 
 # The following section is specific to Flutter packages.
 flutter:

@@ -253,7 +253,8 @@ class _AdminCommunityScreenState extends State<AdminCommunityScreen> {
                       level: level,
                       durationDays: durationDays,
                       notifyTime: selectedTime != null
-                          ? "${selectedTime!.hour.toString().padLeft(2,'0')}:${selectedTime!.minute.toString().padLeft(2,'0')}"
+                          ? "${selectedTime!.hour.toString().padLeft(2,'0')}:"
+                          "${selectedTime!.minute.toString().padLeft(2,'0')}:00"
                           : null,
                     );
 

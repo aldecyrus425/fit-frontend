@@ -163,10 +163,11 @@ class _ChallengeDetailScreenState extends State<ChallengeDetailScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton(
+
                     onPressed: status == "accepted" || status == "completed"
                         ? () => updateChallenge("cancelled")
                         : null,
-                    child: const Text("Cancel"),
+                    child: const Text("Cancel Challenge"),
                   ),
                 ),
               ],

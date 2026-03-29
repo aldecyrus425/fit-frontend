@@ -10,22 +10,31 @@ import 'package:fit_final/screens/register.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService().initialize();
-  await initializeTimeZones();
 
-  // Request permission for Android 13+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  tz.initializeTimeZones();
+  tz.setLocalLocation(tz.getLocation('Asia/Manila'));
+
+  await NotificationService().initialize();
+
   if (Platform.isAndroid) {
-    final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    final granted = await flutterLocalNotificationsPlugin
+    final androidPlugin = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-    print("Notification permission granted? $granted");
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    final isEnabled = await androidPlugin?.areNotificationsEnabled();
+    print("🔍 Before request → Enabled: $isEnabled");
+
+    final granted = await androidPlugin?.requestNotificationsPermission();
+
+    print("📢 After request → Granted: $granted");
   }
 
   runApp(
@@ -43,6 +52,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),

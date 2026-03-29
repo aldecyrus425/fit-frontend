@@ -19,9 +19,9 @@ class AdminFoodScreen extends StatefulWidget {
 class _AdminFoodScreenState extends State<AdminFoodScreen> {
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
-    await fetchFoods();
+    fetchFoods(); // call async method WITHOUT await
   }
 
   Future<void> fetchFoods() async {
