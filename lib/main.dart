@@ -17,13 +17,7 @@ import './screens/UserRegistration/MainRegistrationScreen.dart';
 final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
-
-  tz.initializeTimeZones();
-  tz.setLocalLocation(tz.getLocation('Asia/Manila'));
-
-  await NotificationService().initialize();
 
   if (Platform.isAndroid) {
     final androidPlugin = flutterLocalNotificationsPlugin
@@ -45,6 +39,7 @@ void main() async {
     ),
   );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
