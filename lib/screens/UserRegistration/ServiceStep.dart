@@ -1,3 +1,4 @@
+import 'package:fit_final/models/serviceOptions.dart';
 import 'package:flutter/material.dart';
 import 'createUserModel.dart';
 
@@ -11,9 +12,15 @@ class ServiceStep extends StatefulWidget {
 }
 
 class _ServiceStepState extends State<ServiceStep> {
-  final List<String> services = ["Gym", "Yoga", "Cardio", "Zumba", "Crossfit"];
 
   int selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    widget.data.service = serviceOptions[0];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,11 +63,11 @@ class _ServiceStepState extends State<ServiceStep> {
                 onSelectedItemChanged: (index) {
                   setState(() {
                     selectedIndex = index;
-                    widget.data.service = services[index];
+                    widget.data.service = serviceOptions[index];
                   });
                 },
                 childDelegate: ListWheelChildBuilderDelegate(
-                  childCount: services.length,
+                  childCount: serviceOptions.length,
                   builder: (context, index) {
                     final isSelected = index == selectedIndex;
 
@@ -78,7 +85,7 @@ class _ServiceStepState extends State<ServiceStep> {
                             : null,
                       ),
                       child: Text(
-                        services[index],
+                        serviceOptions[index],
                         style: TextStyle(
                           fontSize: isSelected ? 24 : 18,
                           fontWeight:

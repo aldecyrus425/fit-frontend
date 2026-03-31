@@ -110,155 +110,272 @@ class DashboardScreen extends StatelessWidget {
     final state = Provider.of<AppState>(context);
     final userId = state.currentUser?.id;
 
-    print("👤 Current user ID: $userId");
-
-    // ✅ FIX 6: prevent crash if null
     if (userId == null) {
       return const Center(child: Text("User not logged in"));
     }
 
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Good morning, ${state.userName}!',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 16),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
 
-            // ---------- Challenges ----------
-            Text("Today's Challenges",
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
+              /// 🔥 HEADER (MODERN)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.deepPurple, Colors.purpleAccent],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    Text(
+                      "Welcome back 👋",
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      state.userName,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-            FutureBuilder<List<dynamic>>(
-              future: fetchUserChallenges(userId),
-              builder: (context, snapshot) {
-                print("📦 FutureBuilder state: ${snapshot.connectionState}");
+              const SizedBox(height: 20),
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                if (snapshot.hasError) {
-                  print("❌ Snapshot error: ${snapshot.error}");
-                  return const Text("Failed to load challenges");
-                }
+                    /// 🔥 CHALLENGES SECTION
+                    _sectionTitle("Today's Challenges"),
 
-                final challenges = snapshot.data ?? [];
+                    const SizedBox(height: 10),
 
-                if (challenges.isEmpty) {
-                  return const Text("No active challenges");
-                }
+                    FutureBuilder<List<dynamic>>(
+                      future: fetchUserChallenges(userId),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
 
-                return Column(
-                  children: challenges.map((ch) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        title: Text(ch['title']),
-                        subtitle: Text(
-                          "${ch['description']} • ${ch['duration_days']} days",
-                        ),
-                        trailing: ElevatedButton(
-                          child: const Text("Start"),
-                          onPressed: () {
-                            final challengeId =
-                            ch['challenge_id']?.toString();
+                        if (snapshot.hasError) {
+                          return const Text("Failed to load challenges");
+                        }
 
-                            if (challengeId == null ||
-                                challengeId.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                    Text("Invalid challenge data")),
-                              );
-                              return;
-                            }
+                        final challenges = snapshot.data ?? [];
 
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => ChallengeDetailScreen(
-                                    challengeId: challengeId),
+                        if (challenges.isEmpty) {
+                          return _emptyCard("No active challenges");
+                        }
+
+                        return Column(
+                          children: challenges.map((ch) {
+                            return _modernCard(
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(12),
+                                title: Text(
+                                  ch['title'],
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Text(
+                                    "${ch['description']} • ${ch['duration_days']} days",
+                                  ),
+                                ),
+                                trailing: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  child: const Text("Start",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  onPressed: () {
+                                    final challengeId =
+                                    ch['challenge_id']?.toString();
+
+                                    if (challengeId == null ||
+                                        challengeId.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content:
+                                            Text("Invalid challenge data")),
+                                      );
+                                      return;
+                                    }
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            ChallengeDetailScreen(
+                                                challengeId: challengeId),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             );
-                          },
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
+                          }).toList(),
+                        );
+                      },
+                    ),
 
-            const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-            // ---------- Foods ----------
-            Text("Recommended Food",
-                style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
+                    /// 🔥 FOOD SECTION
+                    _sectionTitle("Recommended Food"),
 
-            FutureBuilder<List<Food>>(
-              future: fetchFoods(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState ==
-                    ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator());
-                }
+                    const SizedBox(height: 10),
 
-                if (snapshot.hasError) {
-                  return const Text("Failed to load foods");
-                }
+                    FutureBuilder<List<Food>>(
+                      future: fetchFoods(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
 
-                final allFoods = snapshot.data ?? [];
+                        if (snapshot.hasError) {
+                          return const Text("Failed to load foods");
+                        }
 
-                final filteredFoods = allFoods.where((food) =>
-                food.category == state.userFitnessService &&
-                    food.level == state.userLevel).toList();
+                        final allFoods = snapshot.data ?? [];
 
-                if (filteredFoods.isEmpty) {
-                  return const Text("No recommended foods");
-                }
+                        final filteredFoods = allFoods.where((food) =>
+                        food.category == state.userFitnessService &&
+                            food.level == state.userLevel).toList();
 
-                return Column(
-                  children: filteredFoods.map((food) {
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        title: Text(
-                          food.name,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          food.description,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    FoodDetailScreen(foodId: food.id),
+                        if (filteredFoods.isEmpty) {
+                          return _emptyCard("No recommended foods");
+                        }
+
+                        return Column(
+                          children: filteredFoods.map((food) {
+                            return _modernCard(
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.all(12),
+                                title: Text(
+                                  food.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 6),
+                                  child: Text(
+                                    food.description,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                trailing: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            FoodDetailScreen(foodId: food.id),
+                                      ),
+                                    );
+                                  },
+                                  child:
+                                  const Text(
+                                      "Show",
+                                    style: TextStyle(
+                                      color: Colors.white
+                                    ),
+                                  ),
+                                ),
                               ),
                             );
-                          },
-                          child: const Text("Show"),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-          ],
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _modernCard({required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _emptyCard(String text) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Center(
+        child: Text(
+          text,
+          style: const TextStyle(color: Colors.grey),
         ),
       ),
     );

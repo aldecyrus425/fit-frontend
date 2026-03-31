@@ -6,6 +6,7 @@ import 'package:fit_final/models/notification_service.dart';
 import 'package:fit_final/screens/admin/adminDashboard.dart';
 import 'package:fit_final/screens/login.dart';
 import 'package:fit_final/screens/mainLayout.dart';
+import 'package:fit_final/screens/profile_update.dart';
 import 'package:fit_final/screens/register.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -57,6 +58,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginScreen(),
         '/register': (context) => const RegistrationUser(),
+        // '/register': (context) => const UserProfileScreen(),
         '/dashboard': (context) => const HomeScreen(),
         '/admindashboard': (context) => AdminDashboardScreen()
       },

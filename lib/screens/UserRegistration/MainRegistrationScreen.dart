@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:fit_final/models/serverAddress.dart';
+import 'package:fit_final/screens/UserRegistration/GenderStep.dart';
 import 'package:flutter/material.dart';
 import 'createUserModel.dart';
 import 'AccountStep.dart';
@@ -27,7 +28,7 @@ class _RegistrationUserState extends State<RegistrationUser> {
   int currentPage = 0;
 
   void next() {
-    if (currentPage < 6) {
+    if (currentPage < 7) {
       _controller.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
@@ -51,6 +52,7 @@ class _RegistrationUserState extends State<RegistrationUser> {
     print(data.name);
     print(data.email);
     print(data.password);
+    print(data.gender);
     print(data.service);
     print(data.level);
     print(data.age);
@@ -62,6 +64,10 @@ class _RegistrationUserState extends State<RegistrationUser> {
     final password = data.password;
     final selectedService = data.service;
     final selectedLevel = data.level;
+    final age = data.age;
+    final selectedHeight = data.height;
+    final selectedWeight = data.weight;
+    final gender = data.gender;
 
     try {
       final url = Uri.parse(Config.endpoint("registration.php"));
@@ -75,6 +81,10 @@ class _RegistrationUserState extends State<RegistrationUser> {
           "password": password,
           "fitnessService": selectedService,
           "level": selectedLevel,
+          "age": age,
+          "height": selectedHeight,
+          "weight": selectedWeight,
+          "gender": gender,
         }),
       );
 
@@ -106,6 +116,7 @@ class _RegistrationUserState extends State<RegistrationUser> {
         onPageChanged: (i) => setState(() => currentPage = i),
         children: [
           AccountStep(data),
+          GenderStep(data),
           ServiceStep(data),
           LevelStep(data),
           AgeStep(data),
@@ -125,7 +136,7 @@ class _RegistrationUserState extends State<RegistrationUser> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
-                  value: (currentPage + 1) / 7,
+                  value: (currentPage + 1) / 8,
                   minHeight: 6,
                   backgroundColor: Colors.grey[300],
                   valueColor: const AlwaysStoppedAnimation(Colors.deepPurple),
@@ -175,7 +186,7 @@ class _RegistrationUserState extends State<RegistrationUser> {
                         ),
                       ),
                       child: Text(
-                        currentPage == 6 ? "Finish" : "Continue",
+                        currentPage == 7 ? "Finish" : "Continue",
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,

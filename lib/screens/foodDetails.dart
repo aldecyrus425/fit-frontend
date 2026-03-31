@@ -15,7 +15,6 @@ class FoodDetailScreen extends StatefulWidget {
 }
 
 class _FoodDetailScreenState extends State<FoodDetailScreen> {
-
   Food? food;
 
   @override
@@ -26,9 +25,8 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
   Future<void> fetchFood() async {
     try {
-      final url = Uri.parse(
-          Config.endpoint("getFoodById.php?id=${widget.foodId}")
-      );
+      final url =
+      Uri.parse(Config.endpoint("getFoodById.php?id=${widget.foodId}"));
 
       final response = await http.get(url);
 
@@ -50,7 +48,6 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
             level: data['level'],
             procedure: data['procedure'],
           );
-
         });
       }
     } catch (e) {
@@ -60,85 +57,109 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     if (food == null) {
       return const Scaffold(
-        body: Center(child: Text("Food not found")),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(food!.name),
-        backgroundColor: Colors.orangeAccent,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            // ---------- Image ----------
-            Container(
-              width: double.infinity,
-              height: 220,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(food!.imageUrl),
-                  fit: BoxFit.cover,
+      backgroundColor: Colors.grey[100],
+      body: CustomScrollView(
+        slivers: [
+          // ---------- Modern SliverAppBar ----------
+          SliverAppBar(
+            expandedHeight: 250,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(food!.name,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              background: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      food!.imageUrl,
+                      fit: BoxFit.cover,
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.black.withOpacity(0.4),
+                            Colors.transparent
+                          ],
+                          begin: Alignment.bottomCenter,
+                          end: Alignment.topCenter,
+                        ),
+                      ),
+                    )
+                  ],
                 ),
               ),
             ),
+            backgroundColor: Colors.deepPurple,
+          ),
 
-            const SizedBox(height: 16),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-                  // ---------- Name ----------
-                  Text(
-                    food!.name,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
                   // ---------- Description ----------
                   Text(
                     food!.description,
                     style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
+                        fontSize: 16, color: Colors.black87, height: 1.4),
                   ),
+                  const SizedBox(height: 24),
 
-                  const SizedBox(height: 16),
-
-                  // ---------- Nutrition ----------
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      NutritionTile('Calories', food!.calories.toString(), 'kcal'),
-                      NutritionTile('Protein', food!.protein.toString(), 'g'),
-                      NutritionTile('Carbs', food!.carbs.toString(), 'g'),
-                      NutritionTile('Fat', food!.fat.toString(), 'g'),
-                    ],
+                  // ---------- Nutrition Card ----------
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8))
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        NutritionTile('Calories', food!.calories.toString(),
+                            'kcal'),
+                        NutritionTile(
+                            'Protein', food!.protein.toString(), 'g'),
+                        NutritionTile('Carbs', food!.carbs.toString(), 'g'),
+                        NutritionTile('Fat', food!.fat.toString(), 'g'),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 24),
 
                   // ---------- Meal Type ----------
-                  Text(
-                    "Meal Type: ${food!.mealType}",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(Icons.restaurant_menu,
+                          color: Colors.deepPurple),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Meal Type: ${food!.mealType}",
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500),
+                      ),
+                    ],
                   ),
 
                   const SizedBox(height: 24),
@@ -147,24 +168,19 @@ class _FoodDetailScreenState extends State<FoodDetailScreen> {
                   const Text(
                     "Procedure",
                     style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-
                   const SizedBox(height: 8),
-
                   Text(
                     food!.procedure ?? "No procedure available.",
-                    style: const TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16, height: 1.5),
                   ),
-
                   const SizedBox(height: 32),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

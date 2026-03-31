@@ -14,7 +14,6 @@ class CommunityScreen extends StatefulWidget {
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
-
   List<CommunityChallenge> challenges = [];
   bool isLoading = true;
   String? error;
@@ -29,7 +28,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
     try {
       final appState = Provider.of<AppState>(context, listen: false);
 
-      // 1️⃣ Get all community challenges
       final url = Uri.parse(Config.endpoint("getCommunity.php"));
       final response = await http.get(url);
 
@@ -43,9 +41,9 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
       final List data = jsonDecode(response.body);
 
-      // 2️⃣ Get user's accepted/rejected/completed challenges
-      final userChallengesUrl =
-      Uri.parse(Config.endpoint("getUserChallenges.php?user_id=${appState.currentUser!.id}"));
+      final userChallengesUrl = Uri.parse(
+        Config.endpoint("getUserChallenges.php?user_id=${appState.currentUser!.id}"),
+      );
       final userResponse = await http.get(userChallengesUrl);
 
       List<String> excludedIds = [];
@@ -54,7 +52,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
         excludedIds = userData.map<String>((e) => e['challenge_id'].toString()).toList();
       }
 
-      // 3️⃣ Filter based on category, level, and exclusion
       final filtered = data
           .where((e) =>
       e['category'] == appState.userFitnessService &&
@@ -77,7 +74,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -101,26 +97,24 @@ class _CommunityScreenState extends State<CommunityScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
-          children: challenges.map((challenge) {
-            return ChallengeCard(
-              challenge: challenge,
-            );
-          }).toList(),
+          children: challenges
+              .map((challenge) => ModernChallengeCard(challenge: challenge))
+              .toList(),
         ),
       ),
     );
   }
 }
-class ChallengeCard extends StatefulWidget {
-  final CommunityChallenge challenge;
 
-  const ChallengeCard({super.key, required this.challenge});
+class ModernChallengeCard extends StatefulWidget {
+  final CommunityChallenge challenge;
+  const ModernChallengeCard({super.key, required this.challenge});
 
   @override
-  State<ChallengeCard> createState() => _ChallengeCardState();
+  State<ModernChallengeCard> createState() => _ModernChallengeCardState();
 }
 
-class _ChallengeCardState extends State<ChallengeCard> {
+class _ModernChallengeCardState extends State<ModernChallengeCard> {
   bool isAccepted = false;
   bool isRejected = false;
   double progress = 0.0;
@@ -128,7 +122,7 @@ class _ChallengeCardState extends State<ChallengeCard> {
   @override
   void initState() {
     super.initState();
-    progress = 0.0; // or pass from widget.challenge if saved in db
+    progress = 0.0;
   }
 
   void acceptChallenge() async {
@@ -137,7 +131,6 @@ class _ChallengeCardState extends State<ChallengeCard> {
       isRejected = false;
       progress = 0.0;
     });
-
     await updateChallengeBackend(status: "accepted", progress: 0.0);
   }
 
@@ -145,7 +138,6 @@ class _ChallengeCardState extends State<ChallengeCard> {
     setState(() {
       isRejected = true;
     });
-
     await updateChallengeBackend(status: "rejected", progress: progress);
   }
 
@@ -154,9 +146,7 @@ class _ChallengeCardState extends State<ChallengeCard> {
       progress += 1 / widget.challenge.durationDays;
       if (progress > 1) progress = 1;
     });
-
     String newStatus = progress >= 1.0 ? "completed" : "accepted";
-
     await updateChallengeBackend(status: newStatus, progress: progress);
   }
 
@@ -165,11 +155,9 @@ class _ChallengeCardState extends State<ChallengeCard> {
       isAccepted = false;
       progress = 0.0;
     });
-
     await updateChallengeBackend(status: "cancelled", progress: 0.0);
   }
 
-// Call backend
   Future<void> updateChallengeBackend({
     required String status,
     required double progress,
@@ -188,12 +176,9 @@ class _ChallengeCardState extends State<ChallengeCard> {
       final response = await http.post(url,
           headers: {"Content-Type": "application/json"},
           body: jsonEncode(payload));
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         print("Challenge updated: $data");
-      } else {
-        print("Failed to update challenge. Status: ${response.statusCode}");
       }
     } catch (e) {
       print("Error updating challenge: $e");
@@ -204,129 +189,106 @@ class _ChallengeCardState extends State<ChallengeCard> {
   Widget build(BuildContext context) {
     if (isRejected) return const SizedBox();
 
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [Colors.orange.shade50, Colors.orange.shade100],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: [Colors.deepPurple.shade50, Colors.purpleAccent.shade100],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.challenge.title,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purpleAccent.withOpacity(0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(widget.challenge.title,
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(widget.challenge.description),
-            const SizedBox(height: 12),
-            LinearProgressIndicator(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.deepPurple)),
+          const SizedBox(height: 6),
+          Text(widget.challenge.description,
+              style: const TextStyle(fontSize: 14, color: Colors.black87)),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.grey[300],
-              color: Colors.orangeAccent,
-              minHeight: 6,
-              borderRadius: BorderRadius.circular(8),
+              minHeight: 8,
+              backgroundColor: Colors.white30,
+              color: Colors.deepPurple,
             ),
-            const SizedBox(height: 10),
-            Text(
-              '${(progress * 100).toInt()}%',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (!isAccepted) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: acceptChallenge,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orangeAccent,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        "Accept",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+          ),
+          const SizedBox(height: 6),
+          Text("${(progress * 100).toInt()}%",
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          if (!isAccepted) ...[
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: acceptChallenge,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
+                    child: const Text("Accept",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                          color: Colors.white
+                        )),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: rejectChallenge,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.orange,
-                        side: const BorderSide(color: Colors.orange),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        "Reject",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: rejectChallenge,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.deepPurple,
+                      side: BorderSide(color: Colors.deepPurple.shade400),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
+                    child: const Text("Reject",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                ],
-              )
-            ] else ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: doneToday,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        "Done Today",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                ),
+              ],
+            )
+          ] else ...[
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: doneToday,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
+                    child: const Text("Done Today",
+                        style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold)),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: cancelChallenge,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.orange,
-                        side: const BorderSide(color: Colors.orange),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        "Cancel",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ],
-        ),
+                ),
+
+              ],
+            )
+          ]
+        ],
       ),
     );
   }

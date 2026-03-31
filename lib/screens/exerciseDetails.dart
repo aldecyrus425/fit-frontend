@@ -16,7 +16,6 @@ class ExerciseDetailScreen extends StatefulWidget {
 }
 
 class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
-
   Exercise? exercise;
 
   @override
@@ -27,7 +26,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   Future<void> fetchExercise() async {
     final url = Uri.parse(
-        Config.endpoint("getExerciseById.php?id=${widget.exerciseId}")
+      Config.endpoint("getExerciseById.php?id=${widget.exerciseId}"),
     );
 
     final response = await http.get(url);
@@ -53,15 +52,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     if (exercise == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    final videoId =
-        YoutubePlayer.convertUrlToId(exercise!.videoUrl) ?? '';
+    final videoId = YoutubePlayer.convertUrlToId(exercise!.videoUrl) ?? '';
 
     final controller = YoutubePlayerController(
       initialVideoId: videoId,
@@ -72,86 +69,164 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(exercise!.name),
-        backgroundColor: Colors.orangeAccent,
+      backgroundColor: Colors.grey[100],
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(60),
+        child: AppBar(
+          elevation: 0,
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.deepPurple, Colors.purpleAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+          ),
+          title: Text(
+            exercise!.name,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          centerTitle: true,
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
+            // ---------- Video ----------
             YoutubePlayerBuilder(
               player: YoutubePlayer(controller: controller),
               builder: (context, player) {
-                return SizedBox(
+                return Container(
                   width: double.infinity,
                   height: 220,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 12,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  clipBehavior: Clip.antiAlias,
                   child: player,
                 );
               },
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
+                  // ---------- Exercise Name ----------
                   Text(
                     exercise!.name,
                     style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold),
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-
                   const SizedBox(height: 8),
 
+                  // ---------- Description ----------
                   Text(
                     exercise!.description,
                     style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey),
+                      fontSize: 16,
+                      color: Colors.black54,
+                    ),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
-                    children: [
-                      InfoTile('Duration',
-                          '${exercise!.duration} min',
-                          Icons.timer),
-                      InfoTile('Difficulty',
-                          exercise!.difficulty,
-                          Icons.fitness_center),
-                      InfoTile('Category',
-                          exercise!.category,
-                          Icons.category),
-                    ],
-                  ),
-
                   const SizedBox(height: 24),
 
-                  Center(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.play_arrow),
-                      label: const Text('Start Workout'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
-                        backgroundColor: Colors.orangeAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.circular(12),
+                  // ---------- Info Tiles ----------
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: InfoTile(
+                          'Duration',
+                          '${exercise!.duration} min',
+                          Icons.timer,
                         ),
-                        textStyle:
-                        const TextStyle(fontSize: 18),
                       ),
-                      onPressed: () {},
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: InfoTile(
+                          'Difficulty',
+                          exercise!.difficulty,
+                          Icons.fitness_center,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: InfoTile(
+                          'Category',
+                          exercise!.category,
+                          Icons.category,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // ---------- Sets & Reps ----------
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(
+                          children: [
+                            const Text(
+                              "Sets",
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.black54),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              exercise!.sets.toString(),
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          children: [
+                            const Text(
+                              "Reps",
+                              style: TextStyle(
+                                  fontSize: 14, color: Colors.black54),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              exercise!.reps.toString(),
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
 
